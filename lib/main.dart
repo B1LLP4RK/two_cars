@@ -1,11 +1,16 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:two_cars/model/course_object_model.dart';
+import 'dart:async';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const TwoCarsApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class TwoCarsApp extends StatelessWidget {
+  const TwoCarsApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -15,20 +20,20 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'two cars'),
+      home: const GameScreen(title: 'two cars'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
+class GameScreen extends StatefulWidget {
+  const GameScreen({super.key, required this.title});
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<GameScreen> createState() => _GameScreenState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _GameScreenState extends State<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,7 +41,13 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Course(),
+      body: Row(
+        children: [
+          Expanded(child: Course()),
+          VerticalDivider(),
+          Expanded(child: Course()),
+        ],
+      ),
     );
   }
 }
@@ -74,38 +85,116 @@ class _CourseState extends State<Course> {
       throw InvalidCarLocationError();
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        double courseWidth = constraints.maxWidth;
-        double carWidth = courseWidth / 3;
-        double courseLength = constraints.maxHeight;
-        return GestureDetector(
-          child: Stack(
-            children: [
-              Container(color: ColorScheme.of(context).surfaceDim),
-              Center(
-                child: VerticalDivider(
-                  color: ColorScheme.of(context).onSurface,
-                ),
+    return ChangeNotifierProvider(
+      create: (context) => CourseObjectModel(),
+      builder: (context, child) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            double courseWidth = constraints.maxWidth;
+            double carWidth = courseWidth / 3;
+            double courseLength = constraints.maxHeight;
+            return GestureDetector(
+              child: Stack(
+                children: [
+                  Container(color: ColorScheme.of(context).surfaceDim),
+                  Center(
+                    child: VerticalDivider(
+                      color: ColorScheme.of(context).onSurface,
+                    ),
+                  ),
+
+                  CourseObjectsLayer(),
+                  AnimatedPositioned(
+                    duration: Duration(milliseconds: 100),
+                    bottom: courseLength / 15,
+                    left: horizontalCarLocation(courseWidth, carWidth),
+                    child: Container(
+                      color: ColorScheme.of(context).primary,
+                      width: carWidth,
+                      height: courseLength / 10,
+                    ),
+                  ),
+                ],
               ),
-              Positioned(
-                bottom: courseLength / 15,
-                left: horizontalCarLocation(courseWidth, carWidth),
-                child: Container(
-                  color: ColorScheme.of(context).primary,
-                  width: carWidth,
-                  height: courseLength / 10,
-                ),
-              ),
-            ],
-          ),
-          onTap: () {
-            setState(() {
-              toggleCarLocation();
-            });
+              onTap: () {
+                setState(() {
+                  toggleCarLocation();
+                });
+              },
+            );
           },
         );
       },
+    );
+  }
+}
+
+class CourseObjectsLayer extends StatefulWidget {
+  const CourseObjectsLayer({super.key});
+
+  @override
+  State<CourseObjectsLayer> createState() => _CourseObjectsLayerState();
+}
+
+class _CourseObjectsLayerState extends State<CourseObjectsLayer> {
+  late Timer _timer;
+  static final random = Random();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      CourseObjectModel courseObjectModel = Provider.of<CourseObjectModel>(
+        context,
+        listen: false,
+      );
+      if (random.nextBool()) {
+        courseObjectModel.addSquareBlock(Lane.leftLane);
+      } else {
+        courseObjectModel.addSquareBlock(Lane.rightLane);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    List<SquareBlocks> leftSquares = Provider.of<CourseObjectModel>(
+      context,
+    ).leftLaneSquareBlockList;
+    List<SquareBlocks> rightSquares = Provider.of<CourseObjectModel>(
+      context,
+    ).rightLaneSquareBlockList;
+
+    List<Widget> animations = [];
+    for (int i = 0; i < leftSquares.length; i++) {
+      animations.add(
+        TweenAnimationBuilder(
+          tween: AlignmentTween(
+            begin: Alignment(0.5, -0.5),
+            end: Alignment(0.5, 1.5),
+          ),
+          duration: Duration(seconds: 1),
+          builder: (context, alignment, child) {
+            return Align(
+              alignment: alignment,
+              child: Container(height: 25, width: 25, color: Colors.blue),
+              key: ValueKey(i),
+            );
+          },
+        ),
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(child: Stack(children: animations)),
+        Expanded(child: Placeholder()),
+      ],
     );
   }
 }
