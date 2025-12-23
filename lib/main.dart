@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:two_cars/model/course_object_model.dart';
 import 'dart:async';
 
+import 'package:two_cars/square_block_widget.dart';
+
 void main() {
   runApp(const TwoCarsApp());
 }
@@ -43,25 +45,25 @@ class _GameScreenState extends State<GameScreen> {
       ),
       body: Row(
         children: [
-          Expanded(child: Course()),
+          Expanded(child: CourseWidget()),
           VerticalDivider(),
-          Expanded(child: Course()),
+          Expanded(child: CourseWidget()),
         ],
       ),
     );
   }
 }
 
-class Course extends StatefulWidget {
-  const Course({super.key});
+class CourseWidget extends StatefulWidget {
+  const CourseWidget({super.key});
 
   @override
-  State<Course> createState() => _CourseState();
+  State<CourseWidget> createState() => _CourseWidgetState();
 }
 
 class InvalidCarLocationError extends Error {}
 
-class _CourseState extends State<Course> {
+class _CourseWidgetState extends State<CourseWidget> {
   int carLocation = 0;
   void toggleCarLocation() {
     if (carLocation == 0) {
@@ -130,29 +132,45 @@ class _CourseState extends State<Course> {
 }
 
 class CourseObjectsLayer extends StatefulWidget {
-  const CourseObjectsLayer({super.key});
-
   @override
   State<CourseObjectsLayer> createState() => _CourseObjectsLayerState();
 }
 
-class _CourseObjectsLayerState extends State<CourseObjectsLayer> {
+class _CourseObjectsLayerState extends State<CourseObjectsLayer>
+    with TickerProviderStateMixin {
   late Timer _timer;
   static final random = Random();
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
+  void initState() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       CourseObjectModel courseObjectModel = Provider.of<CourseObjectModel>(
         context,
         listen: false,
       );
+      AnimationController animation = AnimationController(
+        vsync: this,
+        duration: Duration(seconds: 1),
+      );
+      SquareBlock squareBlock = SquareBlock(
+        animation
+          ..drive(
+            AlignmentTween(
+              begin: Alignment(0.5, -0.5),
+              end: Alignment(0.5, 1.5),
+            ),
+          )
+          ..forward().whenComplete(() {
+            animation.dispose();
+            courseObjectModel.removeSquareBlock(Lane.leftLane);
+          }),
+      );
       if (random.nextBool()) {
-        courseObjectModel.addSquareBlock(Lane.leftLane);
+        courseObjectModel.addSquareBlock(Lane.leftLane, squareBlock);
       } else {
-        courseObjectModel.addSquareBlock(Lane.rightLane);
+        courseObjectModel.addSquareBlock(Lane.rightLane, squareBlock);
       }
     });
+    super.initState();
   }
 
   @override
@@ -163,38 +181,50 @@ class _CourseObjectsLayerState extends State<CourseObjectsLayer> {
 
   @override
   Widget build(BuildContext context) {
-    List<SquareBlocks> leftSquares = Provider.of<CourseObjectModel>(
+    List<SquareBlock> leftSquares = Provider.of<CourseObjectModel>(
       context,
     ).leftLaneSquareBlockList;
-    List<SquareBlocks> rightSquares = Provider.of<CourseObjectModel>(
+    List<SquareBlock> rightSquares = Provider.of<CourseObjectModel>(
       context,
     ).rightLaneSquareBlockList;
-
-    List<Widget> animations = [];
-    for (int i = 0; i < leftSquares.length; i++) {
-      animations.add(
-        TweenAnimationBuilder(
-          tween: AlignmentTween(
-            begin: Alignment(0.5, -0.5),
-            end: Alignment(0.5, 1.5),
-          ),
-          duration: Duration(seconds: 1),
-          builder: (context, alignment, child) {
-            return Align(
-              alignment: alignment,
-              child: Container(height: 25, width: 25, color: Colors.blue),
-              key: ValueKey(i),
-            );
-          },
-        ),
-      );
-    }
-
     return Row(
       children: [
-        Expanded(child: Stack(children: animations)),
-        Expanded(child: Placeholder()),
+        Expanded(
+          child: Stack(
+            children: leftSquares.map((leftsquare) {
+              return FallingWidget(
+                animation: leftsquare.animation as Animation<Alignment>,
+                child: SquareBlockWidget(),
+              );
+            }).toList(),
+          ),
+        ),
+        Expanded(child: Stack(children: [])),
       ],
     );
+  }
+}
+
+class FallingWidget extends StatefulWidget {
+  final Animation<Alignment> animation;
+  Widget child;
+  FallingWidget({super.key, required this.animation, required this.child});
+
+  @override
+  State<FallingWidget> createState() => _FallingWidgetState();
+}
+
+class _FallingWidgetState extends State<FallingWidget> {
+  @override
+  void initState() {
+    widget.animation.addListener(() {
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(alignment: widget.animation.value, child: widget.child);
   }
 }

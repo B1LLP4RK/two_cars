@@ -1,57 +1,67 @@
 import 'package:flutter/material.dart';
 
-class SquareBlocks {}
+class MovingObject {
+  const MovingObject(this.animation);
 
-class CircleBlocks {}
+  final Animation<Object?> animation;
+}
+
+class SquareBlock extends MovingObject {
+  const SquareBlock(super.animation);
+}
+
+class CircleBlock extends MovingObject {
+  const CircleBlock(super.animation);
+}
 
 enum Lane { leftLane, rightLane }
 
 class CourseObjectModel extends ChangeNotifier {
-  final _leftLaneSquareBlockList = <SquareBlocks>[];
-  final _rightLaneSquareBlockList = <SquareBlocks>[];
-  final _leftLaneCircleBlockList = <CircleBlocks>[];
-  final _rightLaneCircleBlockList = <CircleBlocks>[];
+  final _leftLaneSquareBlockList = <SquareBlock>[];
+  final _rightLaneSquareBlockList = <SquareBlock>[];
+  final _leftLaneCircleBlockList = <CircleBlock>[];
+  final _rightLaneCircleBlockList = <CircleBlock>[];
 
-  List<SquareBlocks> get leftLaneSquareBlockList => _leftLaneSquareBlockList;
-  List<SquareBlocks> get rightLaneSquareBlockList => _rightLaneSquareBlockList;
-  List<CircleBlocks> get leftLaneCircleBlockList => _leftLaneCircleBlockList;
-  List<CircleBlocks> get rightLaneCircleBlockList => _rightLaneCircleBlockList;
-  void addSquareBlock(Lane lane) {
+  List<SquareBlock> get leftLaneSquareBlockList => _leftLaneSquareBlockList;
+  List<SquareBlock> get rightLaneSquareBlockList => _rightLaneSquareBlockList;
+  List<CircleBlock> get leftLaneCircleBlockList => _leftLaneCircleBlockList;
+  List<CircleBlock> get rightLaneCircleBlockList => _rightLaneCircleBlockList;
+  void addSquareBlock(Lane lane, SquareBlock squareblock) {
     if (lane == Lane.leftLane) {
-      _leftLaneSquareBlockList.add(SquareBlocks());
+      _leftLaneSquareBlockList.add(squareblock);
       notifyListeners();
     } else {
-      _rightLaneSquareBlockList.add(SquareBlocks());
+      _rightLaneSquareBlockList.add(squareblock);
       notifyListeners();
     }
   }
 
   void removeSquareBlock(Lane lane) {
     if (lane == Lane.leftLane) {
-      _leftLaneSquareBlockList.remove(SquareBlocks());
+      _leftLaneSquareBlockList.removeAt(0);
       notifyListeners();
     } else {
-      _rightLaneSquareBlockList.remove(SquareBlocks());
+      _rightLaneSquareBlockList.removeAt(0);
       notifyListeners();
     }
   }
 
-  void addCircleBlock(Lane lane) {
+  void addCircleBlock(Lane lane, CircleBlock circleBlock) {
     if (lane == Lane.leftLane) {
-      _leftLaneCircleBlockList.add(CircleBlocks());
+      _leftLaneCircleBlockList.add(circleBlock);
       notifyListeners();
     } else {
-      _rightLaneCircleBlockList.add(CircleBlocks());
+      _rightLaneCircleBlockList.add(circleBlock);
       notifyListeners();
     }
   }
 
   void removeCircleBlock(Lane lane) {
     if (lane == Lane.leftLane) {
-      _leftLaneCircleBlockList.remove(CircleBlocks());
+      _leftLaneCircleBlockList.removeAt(0);
       notifyListeners();
     } else {
-      _rightLaneCircleBlockList.remove(CircleBlocks());
+      _rightLaneCircleBlockList.removeAt(0);
       notifyListeners();
     }
   }
