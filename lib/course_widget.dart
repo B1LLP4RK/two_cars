@@ -129,21 +129,18 @@ class _CourseObjectsLayerState extends State<CourseObjectsLayer>
         duration: Duration(seconds: 1),
       );
 
-      animation.forward().whenComplete(() {
-        animation.dispose();
-        courseObjectModel.removeSquareBlock(Lane.leftLane);
-      });
       SquareBlock squareBlock = SquareBlock(
         animation.drive(
           AlignmentTween(begin: Alignment(0.5, -0.5), end: Alignment(0.5, 1.5)),
         ),
         squareCount++,
       );
-      if (random.nextBool()) {
-        courseObjectModel.addSquareBlock(Lane.leftLane, squareBlock);
-      } else {
-        courseObjectModel.addSquareBlock(Lane.rightLane, squareBlock);
-      }
+      Lane laneToSpawn = random.nextBool() ? Lane.leftLane : Lane.rightLane;
+      courseObjectModel.addSquareBlock(laneToSpawn, squareBlock);
+      animation.forward().whenComplete(() {
+        animation.dispose();
+        courseObjectModel.removeSquareBlock(laneToSpawn);
+      });
     });
     super.initState();
   }
