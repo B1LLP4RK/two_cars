@@ -135,11 +135,11 @@ class _CourseObjectsLayerState extends State<CourseObjectsLayer>
         ),
         squareCount++,
       );
-      Lane laneToSpawn = random.nextBool() ? Lane.leftLane : Lane.rightLane;
-      courseObjectModel.addSquareBlock(laneToSpawn, squareBlock);
+      Lane randomLane = random.nextBool() ? Lane.leftLane : Lane.rightLane;
+      courseObjectModel.addSquareBlock(randomLane, squareBlock);
       animation.forward().whenComplete(() {
         animation.dispose();
-        courseObjectModel.removeSquareBlock(laneToSpawn);
+        courseObjectModel.removeSquareBlock(randomLane);
       });
     });
     super.initState();
@@ -205,7 +205,7 @@ class _FallingWidgetState extends State<FallingWidget> {
 
   @override
   void dispose() {
-    widget.animation.removeListener(_tick);
+    // widget.animation.removeListener(_tick);
     super.dispose();
   }
 
