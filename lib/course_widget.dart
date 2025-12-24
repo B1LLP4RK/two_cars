@@ -107,6 +107,7 @@ class CarWidgetLayer extends StatelessWidget {
 }
 
 class CourseObjectsLayer extends StatefulWidget {
+  const CourseObjectsLayer({super.key});
   @override
   State<CourseObjectsLayer> createState() => _CourseObjectsLayerState();
 }
@@ -115,6 +116,7 @@ class _CourseObjectsLayerState extends State<CourseObjectsLayer>
     with TickerProviderStateMixin {
   late Timer _timer;
   static final random = Random();
+  static int squareCount = 0;
   @override
   void initState() {
     _timer = Timer.periodic(Duration(seconds: 1), (timer) {
@@ -135,6 +137,7 @@ class _CourseObjectsLayerState extends State<CourseObjectsLayer>
         animation.drive(
           AlignmentTween(begin: Alignment(0.5, -0.5), end: Alignment(0.5, 1.5)),
         ),
+        squareCount++,
       );
       if (random.nextBool()) {
         courseObjectModel.addSquareBlock(Lane.leftLane, squareBlock);
@@ -166,6 +169,7 @@ class _CourseObjectsLayerState extends State<CourseObjectsLayer>
             children: leftSquares.map((leftsquare) {
               return FallingWidget(
                 animation: leftsquare.animation as Animation<Alignment>,
+                key: ValueKey(leftsquare.count),
                 child: SquareBlockWidget(),
               );
             }).toList(),
@@ -212,9 +216,13 @@ class BackgroundLayer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: ColoredBox(color: Colors.lightBlue)),
-        Divider(),
-        Expanded(child: ColoredBox(color: Colors.lightBlue)),
+        Expanded(
+          child: SizedBox.expand(child: ColoredBox(color: Colors.grey)),
+        ),
+        VerticalDivider(),
+        Expanded(
+          child: SizedBox.expand(child: ColoredBox(color: Colors.grey)),
+        ),
       ],
     );
   }

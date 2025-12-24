@@ -7,7 +7,8 @@ class MovingObject {
 }
 
 class SquareBlock extends MovingObject {
-  const SquareBlock(super.animation);
+  final int count;
+  const SquareBlock(super.animation, this.count);
 }
 
 class CircleBlock extends MovingObject {
