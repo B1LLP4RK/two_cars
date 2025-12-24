@@ -94,7 +94,7 @@ class CarWidgetLayer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AnimatedPositioned(
-      duration: Duration(milliseconds: 100),
+      duration: Duration(milliseconds: 25),
       bottom: courseLength / 15,
       left: horizontalCarLocation,
       child: Container(
