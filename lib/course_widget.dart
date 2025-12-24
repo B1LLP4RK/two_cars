@@ -162,20 +162,21 @@ class _CourseObjectsLayerState extends State<CourseObjectsLayer>
     List<SquareBlock> rightSquares = Provider.of<CourseObjectModel>(
       context,
     ).rightLaneSquareBlockList;
+
+    List<FallingWidget> getFallingWidgets(List<SquareBlock> squares) {
+      return squares.map((leftsquare) {
+        return FallingWidget(
+          animation: leftsquare.animation as Animation<Alignment>,
+          key: ValueKey(leftsquare.count),
+          child: SquareBlockWidget(),
+        );
+      }).toList();
+    }
+
     return Row(
       children: [
-        Expanded(
-          child: Stack(
-            children: leftSquares.map((leftsquare) {
-              return FallingWidget(
-                animation: leftsquare.animation as Animation<Alignment>,
-                key: ValueKey(leftsquare.count),
-                child: SquareBlockWidget(),
-              );
-            }).toList(),
-          ),
-        ),
-        Expanded(child: Stack(children: [])),
+        Expanded(child: Stack(children: getFallingWidgets(leftSquares))),
+        Expanded(child: Stack(children: getFallingWidgets(rightSquares))),
       ],
     );
   }
@@ -195,12 +196,20 @@ class FallingWidget extends StatefulWidget {
 }
 
 class _FallingWidgetState extends State<FallingWidget> {
+  void _tick() {
+    setState(() {});
+  }
+
   @override
   void initState() {
-    widget.animation.addListener(() {
-      setState(() {});
-    });
+    widget.animation.addListener(_tick);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.animation.removeListener(_tick);
+    super.dispose();
   }
 
   @override
